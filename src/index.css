@@ -1,0 +1,277 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Orbitron:wght@400;500;600;700;800;900&display=swap');
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 0 0% 3.9%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 3.9%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 3.9%;
+
+    --primary: 0 0% 9%;
+    --primary-foreground: 0 0% 98%;
+
+    --secondary: 0 0% 96.1%;
+    --secondary-foreground: 0 0% 9%;
+
+    --muted: 0 0% 96.1%;
+    --muted-foreground: 0 0% 45.1%;
+
+    --accent: 0 0% 96.1%;
+    --accent-foreground: 0 0% 9%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+
+    --success: 142 76% 50%;
+    --success-foreground: 222 47% 6%;
+
+    --warning: 38 92% 50%;
+    --warning-foreground: 222 47% 6%;
+
+    --border: 0 0% 89.8%;
+    --input: 0 0% 89.8%;
+    --ring: 0 0% 3.9%;
+
+    --radius: 0.5rem;
+
+    /* Custom gaming gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(174 100% 50%), hsl(200 100% 50%));
+    --gradient-secondary: linear-gradient(135deg, hsl(280 100% 60%), hsl(320 100% 50%));
+    --gradient-accent: linear-gradient(135deg, hsl(174 100% 50%), hsl(280 100% 60%));
+    --gradient-card: linear-gradient(180deg, hsl(222 47% 10%), hsl(222 47% 6%));
+    --gradient-hero: linear-gradient(135deg, hsl(222 47% 8%) 0%, hsl(280 50% 15%) 50%, hsl(222 47% 8%) 100%);
+
+    /* Glow effects */
+    --glow-primary: 0 0 20px hsl(174 100% 50% / 0.4), 0 0 40px hsl(174 100% 50% / 0.2);
+    --glow-secondary: 0 0 20px hsl(280 100% 60% / 0.4), 0 0 40px hsl(280 100% 60% / 0.2);
+    --glow-accent: 0 0 30px hsl(174 100% 50% / 0.3), 0 0 60px hsl(280 100% 60% / 0.2);
+
+    /* Sidebar */
+    --sidebar-background: 222 47% 8%;
+    --sidebar-foreground: 210 40% 98%;
+    --sidebar-primary: 174 100% 50%;
+    --sidebar-primary-foreground: 222 47% 6%;
+    --sidebar-accent: 222 30% 15%;
+    --sidebar-accent-foreground: 210 40% 98%;
+    --sidebar-border: 222 30% 18%;
+    --sidebar-ring: 174 100% 50%;
+    --chart-1: 12 76% 61%;
+    --chart-2: 173 58% 39%;
+    --chart-3: 197 37% 24%;
+    --chart-4: 43 74% 66%;
+    --chart-5: 27 87% 67%;
+  }
+  .dark {
+    --background: 0 0% 3.9%;
+    --foreground: 0 0% 98%;
+    --card: 0 0% 3.9%;
+    --card-foreground: 0 0% 98%;
+    --popover: 0 0% 3.9%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 0 0% 98%;
+    --primary-foreground: 0 0% 9%;
+    --secondary: 0 0% 14.9%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 0 0% 14.9%;
+    --muted-foreground: 0 0% 63.9%;
+    --accent: 0 0% 14.9%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 14.9%;
+    --input: 0 0% 14.9%;
+    --ring: 0 0% 83.1%;
+    --chart-1: 220 70% 50%;
+    --chart-2: 160 60% 45%;
+    --chart-3: 30 80% 55%;
+    --chart-4: 280 65% 60%;
+    --chart-5: 340 75% 55%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    font-family: 'Inter', sans-serif;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Orbitron', sans-serif;
+  }
+}
+
+@layer components {
+  .gaming-card {
+    @apply relative overflow-hidden rounded-xl border border-border bg-card p-4 transition-all duration-300;
+    background: var(--gradient-card);
+  }
+
+  .gaming-card:hover {
+    @apply border-primary/50;
+    box-shadow: var(--glow-primary);
+  }
+
+  .gaming-card::before {
+    content: '';
+    @apply absolute inset-0 opacity-0 transition-opacity duration-300;
+    background: linear-gradient(135deg, hsl(174 100% 50% / 0.05), transparent);
+  }
+
+  .gaming-card:hover::before {
+    @apply opacity-100;
+  }
+
+  .neon-text {
+    text-shadow: 0 0 10px hsl(174 100% 50% / 0.8), 0 0 20px hsl(174 100% 50% / 0.5);
+  }
+
+  .gradient-text {
+    background: var(--gradient-accent);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .glow-border {
+    @apply border border-primary/50;
+    box-shadow: var(--glow-primary);
+  }
+
+  .hero-gradient {
+    background: var(--gradient-hero);
+  }
+
+  .btn-glow {
+    @apply relative overflow-hidden;
+  }
+
+  .btn-glow::before {
+    content: '';
+    @apply absolute inset-0 opacity-0 transition-opacity duration-300;
+    background: var(--gradient-primary);
+    filter: blur(15px);
+  }
+
+  .btn-glow:hover::before {
+    @apply opacity-50;
+  }
+
+  .input-gaming {
+    @apply bg-muted border-border focus:border-primary focus:ring-primary/20;
+  }
+
+  .scrollbar-gaming::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  .scrollbar-gaming::-webkit-scrollbar-track {
+    @apply bg-muted rounded-full;
+  }
+
+  .scrollbar-gaming::-webkit-scrollbar-thumb {
+    @apply bg-primary/50 rounded-full;
+  }
+
+  .scrollbar-gaming::-webkit-scrollbar-thumb:hover {
+    @apply bg-primary;
+  }
+
+  /* Animated background grid */
+  .grid-bg {
+    background-image: 
+      linear-gradient(hsl(222 30% 15% / 0.5) 1px, transparent 1px),
+      linear-gradient(90deg, hsl(222 30% 15% / 0.5) 1px, transparent 1px);
+    background-size: 50px 50px;
+  }
+
+  /* Status badges */
+  .status-pending {
+    background-color: hsl(38 92% 50% / 0.2);
+    color: hsl(38 92% 50%);
+    border-color: hsl(38 92% 50% / 0.3);
+  }
+
+  .status-success {
+    background-color: hsl(142 76% 50% / 0.2);
+    color: hsl(142 76% 50%);
+    border-color: hsl(142 76% 50% / 0.3);
+  }
+
+  .status-failed {
+    background-color: hsl(0 84% 60% / 0.2);
+    color: hsl(0 84% 60%);
+    border-color: hsl(0 84% 60% / 0.3);
+  }
+
+  .status-processing {
+    background-color: hsl(174 100% 50% / 0.2);
+    color: hsl(174 100% 50%);
+    border-color: hsl(174 100% 50% / 0.3);
+  }
+}
+
+@layer utilities {
+  .animate-glow {
+    animation: glow 2s ease-in-out infinite alternate;
+  }
+
+  @keyframes glow {
+    from {
+      box-shadow: 0 0 10px hsl(174 100% 50% / 0.3), 0 0 20px hsl(174 100% 50% / 0.2);
+    }
+    to {
+      box-shadow: 0 0 20px hsl(174 100% 50% / 0.5), 0 0 40px hsl(174 100% 50% / 0.3);
+    }
+  }
+
+  .animate-float {
+    animation: float 3s ease-in-out infinite;
+  }
+
+  @keyframes float {
+    0%, 100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-10px);
+    }
+  }
+
+  .animate-pulse-glow {
+    animation: pulse-glow 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse-glow {
+    0%, 100% {
+      opacity: 1;
+      filter: brightness(1);
+    }
+    50% {
+      opacity: 0.8;
+      filter: brightness(1.2);
+    }
+  }
+}
+
+
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
