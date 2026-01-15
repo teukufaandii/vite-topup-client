@@ -1,4 +1,5 @@
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api/v1';
+const API_BASE_URL =
+  import.meta.env.VITE_API_URL || "http://localhost:8080/api/v1";
 
 interface ApiResponse<T> {
   success: boolean;
@@ -13,20 +14,20 @@ class ApiClient {
 
   constructor(baseUrl: string) {
     this.baseUrl = baseUrl;
-    this.token = localStorage.getItem('access_token');
+    this.token = localStorage.getItem("access_token");
   }
 
   setToken(token: string | null) {
     this.token = token;
     if (token) {
-      localStorage.setItem('access_token', token);
+      localStorage.setItem("access_token", token);
     } else {
-      localStorage.removeItem('access_token');
+      localStorage.removeItem("access_token");
     }
   }
 
   getToken() {
-    return this.token || localStorage.getItem('access_token');
+    return this.token || localStorage.getItem("access_token");
   }
 
   private async request<T>(
@@ -35,13 +36,13 @@ class ApiClient {
   ): Promise<ApiResponse<T>> {
     const url = `${this.baseUrl}${endpoint}`;
     const headers: HeadersInit = {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
       ...options.headers,
     };
 
     const token = this.getToken();
     if (token) {
-      (headers as Record<string, string>)['Authorization'] = `Bearer ${token}`;
+      (headers as Record<string, string>)["Authorization"] = `Bearer ${token}`;
     }
 
     try {
@@ -55,7 +56,7 @@ class ApiClient {
       if (!response.ok) {
         return {
           success: false,
-          error: data.message || data.error || 'An error occurred',
+          error: data.message || data.error || "An error occurred",
         };
       }
 
@@ -66,57 +67,58 @@ class ApiClient {
     } catch (error) {
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Network error',
+        error: error instanceof Error ? error.message : "Network error",
       };
     }
   }
 
-  // Auth endpoints
-  async register(email: string, password: string, name: string) {
-    return this.request<{ user: User; access_token: string; refresh_token: string }>(
-      '/auth/register',
-      {
-        method: 'POST',
-        body: JSON.stringify({ email, password, name }),
-      }
-    );
+  async register(email: string, phone: string, password: string, name: string) {
+    return this.request<{
+      user: User;
+      access_token: string;
+      refresh_token: string;
+      phone: string;
+    }>("/auth/register", {
+      method: "POST",
+      body: JSON.stringify({ email, phone, password, full_name: name }),
+    });
   }
 
   async login(email: string, password: string) {
-    return this.request<{ user: User; access_token: string; refresh_token: string }>(
-      '/auth/login',
-      {
-        method: 'POST',
-        body: JSON.stringify({ email, password }),
-      }
-    );
+    return this.request<{
+      user: User;
+      access_token: string;
+      refresh_token: string;
+    }>("/auth/login", {
+      method: "POST",
+      body: JSON.stringify({ email, password }),
+    });
   }
 
   async logout() {
-    const result = await this.request('/auth/logout', { method: 'POST' });
+    const result = await this.request("/auth/logout", { method: "POST" });
     this.setToken(null);
-    localStorage.removeItem('refresh_token');
+    localStorage.removeItem("refresh_token");
     return result;
   }
 
   async getProfile() {
-    return this.request<User>('/auth/profile');
+    return this.request<User>("/auth/profile");
   }
 
   async updateProfile(data: Partial<User>) {
-    return this.request<User>('/auth/profile', {
-      method: 'PUT',
+    return this.request<User>("/auth/profile", {
+      method: "PUT",
       body: JSON.stringify(data),
     });
   }
 
-  // Games endpoints
   async getGames() {
-    return this.request<Game[]>('/games');
+    return this.request<Game[]>("/games");
   }
 
   async getPopularGames() {
-    return this.request<Game[]>('/games/popular');
+    return this.request<Game[]>("/games/popular");
   }
 
   async getGamesByCategory(category: string) {
@@ -127,7 +129,6 @@ class ApiClient {
     return this.request<Game>(`/games/${code}`);
   }
 
-  // Products endpoints
   async getProductsByGame(gameId: string) {
     return this.request<Product[]>(`/products/game/${gameId}`);
   }
@@ -144,9 +145,8 @@ class ApiClient {
     return this.request<Product>(`/products/${id}`);
   }
 
-  // Transactions endpoints
   async getTransactions() {
-    return this.request<Transaction[]>('/transactions');
+    return this.request<Transaction[]>("/transactions");
   }
 
   async getTransaction(id: string) {
@@ -158,23 +158,24 @@ class ApiClient {
   }
 
   async createTransaction(data: CreateTransactionRequest) {
-    return this.request<Transaction>('/transactions', {
-      method: 'POST',
+    return this.request<Transaction>("/transactions", {
+      method: "POST",
       body: JSON.stringify(data),
     });
   }
 
-  // Payment endpoints
   async getPaymentChannels() {
-    return this.request<PaymentChannel[]>('/payment/channels');
+    return this.request<PaymentChannel[]>("/payment/channels");
   }
 
   async getPaymentChannelsByType(type: string) {
-    return this.request<PaymentChannel[]>(`/payment/channels/type?type=${type}`);
+    return this.request<PaymentChannel[]>(
+      `/payment/channels/type?type=${type}`
+    );
   }
 
   async getGroupedPaymentChannels() {
-    return this.request<GroupedPaymentChannels>('/payment/channels/grouped');
+    return this.request<PaymentChannelGroup[]>("/payment/channels/grouped");
   }
 
   async getPaymentChannel(code: string) {
@@ -182,14 +183,16 @@ class ApiClient {
   }
 
   async calculateFee(amount: number, channelCode: string) {
-    return this.request<{ fee: number; total: number }>('/payment/calculate-fee', {
-      method: 'POST',
-      body: JSON.stringify({ amount, channel_code: channelCode }),
-    });
+    return this.request<{ fee: number; total: number }>(
+      "/payment/calculate-fee",
+      {
+        method: "POST",
+        body: JSON.stringify({ amount, channel_code: channelCode }),
+      }
+    );
   }
 }
 
-// Types
 export interface User {
   id: string;
   email: string;
@@ -208,6 +211,7 @@ export interface Game {
   image: string;
   banner?: string;
   category: string;
+  total_sold: number;
   is_active: boolean;
   is_popular: boolean;
   sort_order: number;
@@ -250,7 +254,7 @@ export interface Transaction {
   amount: number;
   fee: number;
   total: number;
-  status: 'pending' | 'processing' | 'success' | 'failed' | 'expired';
+  status: "pending" | "processing" | "success" | "failed" | "expired";
   payment_channel: string;
   payment_url?: string;
   player_id: string;
@@ -261,19 +265,23 @@ export interface Transaction {
 }
 
 export interface PaymentChannel {
+  id: string;
   code: string;
   name: string;
   type: string;
+  provider: string;
   icon?: string;
   fee_flat: number;
   fee_percent: number;
   min_amount: number;
   max_amount: number;
-  is_active: boolean;
+  is_active?: boolean;
 }
 
-export interface GroupedPaymentChannels {
-  [type: string]: PaymentChannel[];
+export interface PaymentChannelGroup {
+  provider: string;
+  type: string;
+  channels: PaymentChannel[];
 }
 
 export interface CreateTransactionRequest {
