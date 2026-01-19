@@ -6,6 +6,15 @@ interface ApiResponse<T> {
   data?: T;
   message?: string;
   error?: string;
+  code?: string;
+  meta?: PaginationMeta; 
+}
+
+export interface PaginationMeta {
+  current_page: number;
+  per_page: number;
+  total_items: number;
+  total_pages: number;
 }
 
 class ApiClient {
@@ -32,7 +41,7 @@ class ApiClient {
 
   private async request<T>(
     endpoint: string,
-    options: RequestInit = {}
+    options: RequestInit = {},
   ): Promise<ApiResponse<T>> {
     const url = `${this.baseUrl}${endpoint}`;
     const headers: HeadersInit = {
@@ -51,12 +60,22 @@ class ApiClient {
         headers,
       });
 
-      const data = await response.json();
+      let data;
+      try {
+        data = await response.json();
+      } catch (e) {
+        data = { error: "Failed to parse response" };
+      }
 
       if (!response.ok) {
+        if (response.status === 401) {
+          this.setToken(null);
+        }
+
         return {
           success: false,
-          error: data.message || data.error || "An error occurred",
+          error: data.message || data.error || response.statusText,
+          code: data.code || "UNKNOWN_ERROR",
         };
       }
 
@@ -68,12 +87,13 @@ class ApiClient {
       return {
         success: false,
         error: error instanceof Error ? error.message : "Network error",
+        code: "NETWORK_ERROR",
       };
     }
   }
 
   async register(email: string, phone: string, password: string, name: string) {
-    return this.request<{
+    const response = await this.request<{
       user: User;
       access_token: string;
       refresh_token: string;
@@ -82,10 +102,16 @@ class ApiClient {
       method: "POST",
       body: JSON.stringify({ email, phone, password, full_name: name }),
     });
+
+    if (response.success && response.data) {
+      this.setToken(response.data.access_token);
+    }
+
+    return response;
   }
 
   async login(email: string, password: string) {
-    return this.request<{
+    const response = await this.request<{
       user: User;
       access_token: string;
       refresh_token: string;
@@ -93,6 +119,12 @@ class ApiClient {
       method: "POST",
       body: JSON.stringify({ email, password }),
     });
+
+    if (response.success && response.data) {
+      this.setToken(response.data.access_token);
+    }
+
+    return response;
   }
 
   async logout() {
@@ -170,7 +202,7 @@ class ApiClient {
 
   async getPaymentChannelsByType(type: string) {
     return this.request<PaymentChannel[]>(
-      `/payment/channels/type?type=${type}`
+      `/payment/channels/type?type=${type}`,
     );
   }
 
@@ -182,13 +214,13 @@ class ApiClient {
     return this.request<PaymentChannel>(`/payment/channels/${code}`);
   }
 
-  async calculateFee(amount: number, channelCode: string) {
-    return this.request<{ fee: number; total: number }>(
+  async calculateFee(amount: number, code: string) {
+    return this.request<{ fee_amount: number; total: number }>(
       "/payment/calculate-fee",
       {
         method: "POST",
-        body: JSON.stringify({ amount, channel_code: channelCode }),
-      }
+        body: JSON.stringify({ amount, code }),
+      },
     );
   }
 }
@@ -220,12 +252,18 @@ export interface Game {
   updated_at: string;
 }
 
+export interface InputFieldOption {
+  value: string;
+  label: string;
+}
+
 export interface GameInputField {
   name: string;
   label: string;
   type: string;
   placeholder?: string;
   required: boolean;
+  options?: InputFieldOption[];
 }
 
 export interface Product {
@@ -246,22 +284,21 @@ export interface Product {
 
 export interface Transaction {
   id: string;
-  user_id: string;
-  order_id: string;
-  product_id: string;
-  product?: Product;
-  game?: Game;
+  invoice_number: string;
+  game_name: string;
+  product_name: string;
+  target_user_id: string;
   amount: number;
-  fee: number;
-  total: number;
+  admin_fee: number;
+  total_amount: number;
   status: "pending" | "processing" | "success" | "failed" | "expired";
-  payment_channel: string;
+  payment_method: string; 
   payment_url?: string;
-  player_id: string;
-  player_data?: Record<string, string>;
-  created_at: string;
-  updated_at: string;
   expired_at?: string;
+  created_at: string;
+  
+  game?: Game; 
+  product?: Product;
 }
 
 export interface PaymentChannel {
@@ -285,10 +322,13 @@ export interface PaymentChannelGroup {
 }
 
 export interface CreateTransactionRequest {
-  product_id: string;
-  payment_channel: string;
+  product_item_id: string;
+  channel_code: string;
   player_id: string;
   player_data?: Record<string, string>;
+  customer_name?: string;
+  customer_email?: string;
+  customer_phone?: string;
 }
 
 export const api = new ApiClient(API_BASE_URL);

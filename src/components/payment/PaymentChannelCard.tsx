@@ -20,6 +20,7 @@ const getChannelIcon = (type: string) => {
       return QrCode;
     case "bank_transfer":
     case "va":
+    case "virtual_account": 
       return Building2;
     case "ewallet":
     case "e-wallet":
@@ -53,11 +54,12 @@ export function PaymentChannelCard({
     <button
       type="button"
       onClick={() => onSelect(channel)}
+      disabled={channel.is_active === false} 
       className={cn(
-        "gaming-card w-full text-left transition-all duration-300 flex items-center gap-4",
-        selected && "glow-border ring-2 ring-primary"
+        "gaming-card w-full text-left transition-all duration-300 flex items-center gap-4 cursor-pointer", // Tambah cursor-pointer eksplisit
+        selected && "glow-border ring-2 ring-primary",
+        channel.is_active === false && "opacity-50 cursor-not-allowed grayscale"
       )}
-      disabled={!channel.is_active}
     >
       {/* Icon */}
       <div

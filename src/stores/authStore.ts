@@ -14,7 +14,7 @@ interface AuthState {
     email: string,
     phone: string,
     password: string,
-    name: string
+    name: string,
   ) => Promise<boolean>;
   logout: () => Promise<void>;
   fetchProfile: () => Promise<void>;
@@ -55,7 +55,7 @@ export const useAuthStore = create<AuthState>()(
         email: string,
         phone: string,
         password: string,
-        name: string
+        name: string,
       ) => {
         set({ isLoading: true, error: null });
         const response = await api.register(email, phone, password, name);
@@ -138,6 +138,6 @@ export const useAuthStore = create<AuthState>()(
         user: state.user,
         isAuthenticated: state.isAuthenticated,
       }),
-    }
-  )
+    },
+  ),
 );

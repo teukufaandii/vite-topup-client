@@ -25,7 +25,7 @@ export default function Login() {
 
     if (!email || !password) {
       toast({
-        title: 'Error',
+        title: 'Failed',
         description: 'Email dan password harus diisi',
         variant: 'destructive',
       });
@@ -70,7 +70,8 @@ export default function Login() {
             <form onSubmit={handleSubmit} className="space-y-5">
               {/* Email */}
               <div>
-                <label className="block text-sm font-medium mb-2">Email</label>
+                <p className="block text-sm font-medium mb-2 text-left ml-2
+                ">Email</p>
                 <div className="relative">
                   <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                   <Input
@@ -85,7 +86,7 @@ export default function Login() {
 
               {/* Password */}
               <div>
-                <label className="block text-sm font-medium mb-2">Password</label>
+                <p className="block text-sm font-medium mb-2 text-left ml-2">Password</p>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                   <Input
@@ -136,7 +137,7 @@ export default function Login() {
             </div>
 
             {/* Register Link */}
-            <p className="text-center text-muted-foreground">
+            <p className="relative text-center text-muted-foreground">
               Belum punya akun?{' '}
               <Link to="/register" className="text-primary font-medium hover:underline">
                 Daftar sekarang

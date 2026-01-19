@@ -9,6 +9,9 @@ import Index from "./pages/Index";
 import GameDetail from "./pages/GameDetails";
 import Register from "./pages/Register";
 import Login from "./pages/Login";
+import Transactions from "./pages/Transactions";
+import Profile from "./pages/Profile";
+import Games from "./pages/Games";
 
 const queryClient = new QueryClient();
 
@@ -22,7 +25,10 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/register" element={<Register />} />
             <Route path="/login" element={<Login />} />
-            <Route path="/games/:code" element={<GameDetail />}></Route>
+            <Route path="/games" element={<Games />} />
+            <Route path="/games/:code" element={<GameDetail />} />
+            <Route path="/transactions" element={<Transactions />} />
+            <Route path="/profile" element={<Profile />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

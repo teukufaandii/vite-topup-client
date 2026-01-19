@@ -17,6 +17,7 @@ interface AuthContextType {
   ) => Promise<{ success: boolean; error?: string }>;
   register: (
     email: string,
+    phone: string,
     password: string,
     name: string
   ) => Promise<{ success: boolean; error?: string }>;
@@ -58,8 +59,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return { success: false, error: result.error };
   };
 
-  const register = async (email: string, password: string, name: string) => {
-    const result = await api.register(email, password, name);
+  const register = async (
+    email: string,
+    phone: string,
+    password: string,
+    name: string
+  ) => {
+    const result = await api.register(email, phone, password, name);
     if (result.success && result.data) {
       api.setToken(result.data.access_token);
       localStorage.setItem("refresh_token", result.data.refresh_token);

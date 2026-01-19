@@ -12,7 +12,7 @@ export function ProductCard({ product, selected, onSelect }: ProductCardProps) {
   const discount = product.original_price
     ? Math.round(
         ((product.original_price - product.price) / product.original_price) *
-          100
+          100,
       )
     : 0;
 
@@ -29,7 +29,7 @@ export function ProductCard({ product, selected, onSelect }: ProductCardProps) {
       onClick={() => onSelect(product)}
       className={cn(
         "gaming-card relative w-full text-left transition-all duration-300",
-        selected && "glow-border ring-2 ring-primary"
+        selected && "glow-border ring-2 ring-primary",
       )}
     >
       {/* Discount Badge */}

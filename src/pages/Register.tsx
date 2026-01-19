@@ -41,6 +41,24 @@ export default function Register() {
       return;
     }
 
+    if (phone.includes(" ")) {
+      toast({
+        title: "Error",
+        description: "Nomor telepon tidak boleh ada spasi",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (phone.includes("abcdefghijklmnopqrstuvwxyz")) {
+      toast({
+        title: "Error",
+        description: "Nomor telepon tidak boleh ada huruf",
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (password !== confirmPassword) {
       toast({
         title: "Error",
@@ -221,7 +239,7 @@ export default function Register() {
             </div>
 
             {/* Login Link */}
-            <p className="text-center text-muted-foreground">
+            <p className="relative text-center text-muted-foreground">
               Sudah punya akun?{" "}
               <Link
                 to="/login"

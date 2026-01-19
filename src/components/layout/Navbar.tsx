@@ -1,6 +1,6 @@
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuthStore } from "@/stores";
 import { Gamepad2, User, LogOut, History, Menu, X } from "lucide-react";
 import { useState } from "react";
 import {
@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 export function Navbar() {
-  const { user, isAuthenticated, logout } = useAuth();
+  const { user, isAuthenticated, logout } = useAuthStore();
   const navigate = useNavigate();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -66,10 +66,10 @@ export function Navbar() {
                   <Button variant="ghost" className="gap-2">
                     <div className="h-8 w-8 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
                       <span className="text-sm font-bold text-primary-foreground">
-                        {user?.name?.charAt(0).toUpperCase()}
+                        {user?.name?.charAt(0).toUpperCase() || "U"}
                       </span>
                     </div>
-                    <span className="font-medium">{user?.name}</span>
+                    <span className="font-medium">{user?.name || "User"}</span>
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-48">
@@ -181,7 +181,7 @@ export function Navbar() {
                   </>
                 ) : (
                   <>
-                    <Button variant="ghost" asChild>
+                    <Button variant="ghost" asChild className="justify-start">
                       <Link
                         to="/login"
                         onClick={() => setIsMobileMenuOpen(false)}

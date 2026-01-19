@@ -29,6 +29,7 @@ export default function GameDetail() {
   const { code } = useParams<{ code: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user } = useAuthStore();
 
   const { isAuthenticated } = useAuthStore();
   const {
@@ -55,11 +56,11 @@ export default function GameDetail() {
 
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [selectedChannel, setSelectedChannel] = useState<PaymentChannel | null>(
-    null
+    null,
   );
   const [playerData, setPlayerData] = useState<Record<string, string>>({});
   const [expandedChannelType, setExpandedChannelType] = useState<string | null>(
-    "qris"
+    "qris",
   );
 
   useEffect(() => {
@@ -92,7 +93,7 @@ export default function GameDetail() {
     }
   }, [selectedProduct, selectedChannel, calculateFee]);
 
-  const fee = feeCalculation?.fee || 0;
+  const fee = feeCalculation?.fee_amount || 0;
   const total =
     feeCalculation?.total || (selectedProduct ? selectedProduct.price : 0);
 
@@ -143,10 +144,13 @@ export default function GameDetail() {
       playerData[currentGame?.input_fields?.[0]?.name || "player_id"] || "";
 
     const transaction = await createTransaction({
-      product_id: selectedProduct.id,
-      payment_channel: selectedChannel.code,
+      product_item_id: selectedProduct.id,
+      channel_code: selectedChannel.code,
       player_id: playerId,
       player_data: playerData,
+      customer_name: user?.name || "",
+      customer_email: user?.email || "",
+      customer_phone: user?.phone || "",
     });
 
     if (transaction) {
@@ -167,6 +171,10 @@ export default function GameDetail() {
         variant: "destructive",
       });
     }
+  };
+
+  const toggleChannelGroup = (type: string) => {
+    setExpandedChannelType((prev) => (prev === type ? null : type));
   };
 
   if (gameLoading) {
@@ -259,21 +267,51 @@ export default function GameDetail() {
                   <div className="gaming-card space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {currentGame.input_fields.map((field) => (
-                        <div key={field.name}>
-                          <label className="block text-sm font-medium mb-2">
+                        <div key={field.name} className="relative">
+                          <label className="block text-sm font-medium mb-2 text-left ml-2">
                             {field.label}
                             {field.required && (
                               <span className="text-destructive ml-1">*</span>
                             )}
                           </label>
-                          <Input
-                            type={field.type === "text" ? "text" : "text"}
-                            placeholder={field.placeholder}
-                            value={playerData[field.name] || ""}
-                            onChange={(e) =>
-                              handlePlayerDataChange(field.name, e.target.value)
-                            }
-                          />
+
+                          {field.type === "select" && field.options ? (
+                            <div className="relative">
+                              <select
+                                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 appearance-none"
+                                value={playerData[field.name] || ""}
+                                onChange={(e) =>
+                                  handlePlayerDataChange(
+                                    field.name,
+                                    e.target.value,
+                                  )
+                                }
+                              >
+                                <option value="" disabled>
+                                  {field.placeholder || "Pilih salah satu"}
+                                </option>
+                                {field.options.map((opt) => (
+                                  <option key={opt.value} value={opt.value}>
+                                    {opt.label}
+                                  </option>
+                                ))}
+                              </select>
+                              {/* Chevron Icon untuk Select */}
+                              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+                            </div>
+                          ) : (
+                            <Input
+                              type={field.type === "number" ? "number" : "text"}
+                              placeholder={field.placeholder}
+                              value={playerData[field.name] || ""}
+                              onChange={(e) =>
+                                handlePlayerDataChange(
+                                  field.name,
+                                  e.target.value,
+                                )
+                              }
+                            />
+                          )}
                         </div>
                       ))}
                     </div>
@@ -325,17 +363,16 @@ export default function GameDetail() {
                 <div className="flex items-center justify-center py-10">
                   <Loader2 className="h-8 w-8 animate-spin text-primary" />
                 </div>
-              ) : groupedChannels && Array.isArray(groupedChannels) && groupedChannels.length > 0 ? (
+              ) : groupedChannels &&
+                Array.isArray(groupedChannels) &&
+                groupedChannels.length > 0 ? (
                 <div className="space-y-4">
                   {groupedChannels.map((group) => (
-                    <div key={group.type} className="gaming-card p-0 overflow-hidden">
+                    <div key={group.type} className="gaming-card p-0">
                       <button
-                        onClick={() =>
-                          setExpandedChannelType(
-                            expandedChannelType === group.type ? null : group.type
-                          )
-                        }
-                        className="w-full flex items-center justify-between p-4 hover:bg-muted/50 transition-colors"
+                        type="button"
+                        onClick={() => toggleChannelGroup(group.type)}
+                        className="w-full flex items-center justify-between p-4 hover:bg-muted/50 transition-colors cursor-pointer relative z-10"
                       >
                         <span className="font-semibold">
                           {channelTypeLabels[group.type] || group.type}
@@ -346,14 +383,15 @@ export default function GameDetail() {
                           <ChevronDown className="h-5 w-5 text-muted-foreground" />
                         )}
                       </button>
+
                       {expandedChannelType === group.type && (
-                        <div className="p-4 pt-0 space-y-3">
+                        <div className="p-4 pt-0 space-y-3 border-t border-border/50 relative z-10">
                           {group.channels.map((channel: PaymentChannel) => (
                             <PaymentChannelCard
-                              key={channel.id}
+                              key={channel.code}
                               channel={channel}
-                              selected={selectedChannel?.id === channel.id}
-                              onSelect={setSelectedChannel}
+                              selected={selectedChannel?.code === channel.code}
+                              onSelect={(c) => setSelectedChannel(c)}
                             />
                           ))}
                         </div>
@@ -450,12 +488,12 @@ export default function GameDetail() {
                 {transactionLoading
                   ? "Memproses..."
                   : isAuthenticated
-                  ? "Bayar Sekarang"
-                  : "Login untuk Bayar"}
+                    ? "Bayar Sekarang"
+                    : "Login untuk Bayar"}
               </Button>
 
               {!isAuthenticated && (
-                <p className="text-xs text-muted-foreground text-center mt-3">
+                <p className="relative text-xs text-muted-foreground text-center mt-3">
                   Belum punya akun?{" "}
                   <Link to="/register" className="text-primary hover:underline">
                     Daftar disini
