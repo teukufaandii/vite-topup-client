@@ -26,7 +26,7 @@ interface AdminState {
 
   fetchAllGames: () => Promise<void>;
   createGame: (data: FormData) => Promise<boolean>;
-  updateGame: (id: string, data: Partial<Game>) => Promise<boolean>;
+  updateGame: (id: string, data: FormData) => Promise<boolean>;
   deleteGame: (id: string) => Promise<boolean>;
 
   fetchAllProducts: (gameId?: string) => Promise<void>;

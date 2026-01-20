@@ -32,18 +32,13 @@ import { toast } from "sonner";
 import api from "@/lib/api";
 
 export default function GamesManagement() {
-  const {
-    games,
-    fetchAllGames,
-    updateGame,
-    deleteGame,
-    isLoading,
-  } = useAdminStore();
+  const { games, fetchAllGames, updateGame, deleteGame, isLoading } =
+    useAdminStore();
   const [searchQuery, setSearchQuery] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [editingGame, setEditingGame] = useState<Game | null>(null);
-  
+
   const [gameToDelete, setGameToDelete] = useState<Game | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
@@ -93,15 +88,15 @@ export default function GamesManagement() {
   const handleEdit = (game: Game) => {
     setEditingGame(game);
     setFormData({
-      name: game.name,
-      code: game.code,
-      publisher: "Unknown", 
-      description: game.description,
-      image: game.icon_url,
+      name: game.name || "",
+      code: game.code || "",
+      publisher: game.publisher || "",
+      description: game.description || "",
+      image: game.icon_url || "",
       banner: game.banner_url || "",
-      category: game.category,
-      status: game.status,
-      sort_order: game.sort_order,
+      category: game.category || "",
+      status: game.status || "active",
+      sort_order: game.sort_order ?? 0, 
     });
     setImageFile(null);
     setBannerFile(null);
@@ -113,51 +108,55 @@ export default function GamesManagement() {
     setIsSubmitting(true);
 
     try {
+      const formDataPayload = new FormData();
+
+      formDataPayload.append("name", formData.name);
+      formDataPayload.append("code", formData.code);
+      formDataPayload.append("publisher", formData.publisher);
+      formDataPayload.append("category", formData.category);
+      formDataPayload.append("description", formData.description);
+      formDataPayload.append("status", formData.status);
+
+      const sortOrderVal = formData.sort_order ?? 0;
+      formDataPayload.append("sort_order", sortOrderVal.toString());
+
+      formDataPayload.append("input_fields", JSON.stringify([]));
+
+      if (imageFile) {
+        formDataPayload.append("icon_file", imageFile);
+      }
+
+      if (bannerFile) {
+        formDataPayload.append("banner_file", bannerFile);
+      }
+
       let success = false;
 
       if (editingGame) {
-        success = await updateGame(editingGame.id, {
-            ...formData,
-            icon_url: formData.image, 
-            banner_url: formData.banner 
-        });
+        // @ts-ignore
+        success = await updateGame(editingGame.id, formDataPayload);
         if (success) toast.success("Game updated successfully");
       } else {
-        const formDataPayload = new FormData();
-        
-        formDataPayload.append("name", formData.name);
-        formDataPayload.append("code", formData.code);
-        formDataPayload.append("publisher", formData.publisher);
-        formDataPayload.append("category", formData.category);
-        formDataPayload.append("description", formData.description);
-        formDataPayload.append("status", formData.status);
-        formDataPayload.append("sort_order", formData.sort_order.toString());
-        
-        if (imageFile) {
-          formDataPayload.append("icon_file", imageFile);
-        } else {
-            toast.error("Icon file is required for new game");
-            setIsSubmitting(false);
-            return;
+        if (!imageFile) {
+          toast.error("Icon file is required for new game");
+          setIsSubmitting(false);
+          return;
         }
 
-        if (bannerFile) {
-          formDataPayload.append("banner_file", bannerFile);
-        } else {
-            toast.error("Banner file is required for new game");
-            setIsSubmitting(false);
-            return;
+        if (!bannerFile) {
+          toast.error("Banner file is required for new game");
+          setIsSubmitting(false);
+          return;
         }
 
-        formDataPayload.append("input_fields", JSON.stringify([]));
-
-        const response = await api.createGame(formDataPayload);
-        if (response.success) {
-            success = true;
-            await fetchAllGames();
-            toast.success("Game created successfully");
+        success = await api
+          .createGame(formDataPayload)
+          .then((res) => res.success);
+        if (success) {
+          await fetchAllGames();
+          toast.success("Game created successfully");
         } else {
-            toast.error(response.error || "Failed to create game");
+          toast.error("Failed to create game");
         }
       }
 
@@ -166,7 +165,9 @@ export default function GamesManagement() {
         resetForm();
       }
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Failed to save game");
+      toast.error(
+        error instanceof Error ? error.message : "Failed to save game",
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -174,7 +175,7 @@ export default function GamesManagement() {
 
   const confirmDelete = async () => {
     if (!gameToDelete) return;
-    
+
     const success = await deleteGame(gameToDelete.id);
     if (success) {
       toast.success("Game deleted successfully");
@@ -322,16 +323,16 @@ export default function GamesManagement() {
                 </div>
 
                 <div className="space-y-2">
-                    <Label htmlFor="publisher">Publisher</Label>
-                    <Input
-                      id="publisher"
-                      value={formData.publisher}
-                      onChange={(e) =>
-                        setFormData({ ...formData, publisher: e.target.value })
-                      }
-                      required
-                    />
-                  </div>
+                  <Label htmlFor="publisher">Publisher</Label>
+                  <Input
+                    id="publisher"
+                    value={formData.publisher}
+                    onChange={(e) =>
+                      setFormData({ ...formData, publisher: e.target.value })
+                    }
+                    required
+                  />
+                </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="description">Description</Label>
@@ -384,12 +385,13 @@ export default function GamesManagement() {
                       id="sort_order"
                       type="number"
                       value={formData.sort_order}
-                      onChange={(e) =>
+                      onChange={(e) => {
+                        const val = parseInt(e.target.value);
                         setFormData({
                           ...formData,
-                          sort_order: parseInt(e.target.value),
-                        })
-                      }
+                          sort_order: isNaN(val) ? 0 : val,
+                        });
+                      }}
                     />
                   </div>
                 </div>
@@ -449,17 +451,26 @@ export default function GamesManagement() {
           emptyMessage="No games found"
         />
 
-        <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialog
+          open={isDeleteDialogOpen}
+          onOpenChange={setIsDeleteDialogOpen}
+        >
           <AlertDialogContent>
             <AlertDialogHeader>
               <AlertDialogTitle>Are you sure?</AlertDialogTitle>
               <AlertDialogDescription>
-                This action cannot be undone. This will permanently delete "{gameToDelete?.name}" and remove it from our servers.
+                This action cannot be undone. This will permanently delete "
+                {gameToDelete?.name}" and remove it from our servers.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel onClick={() => setGameToDelete(null)}>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              <AlertDialogCancel onClick={() => setGameToDelete(null)}>
+                Cancel
+              </AlertDialogCancel>
+              <AlertDialogAction
+                onClick={confirmDelete}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
                 Delete
               </AlertDialogAction>
             </AlertDialogFooter>

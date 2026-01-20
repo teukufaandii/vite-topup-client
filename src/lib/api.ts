@@ -250,10 +250,10 @@ class ApiClient {
     });
   }
 
-  async updateGame(id: string, data: Partial<Game>) {
+  async updateGame(id: string, data: FormData) {
     return this.request<Game>(`/admin/games/${id}`, {
       method: "PUT",
-      body: JSON.stringify(data),
+      body: data,
     });
   }
 
@@ -322,6 +322,7 @@ export interface Game {
   code: string;
   name: string;
   description: string;
+  publisher: string;
   icon_url: string;
   banner_url?: string;
   category: string;
