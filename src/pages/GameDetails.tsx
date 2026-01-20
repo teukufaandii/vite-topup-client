@@ -221,7 +221,7 @@ export default function GameDetail() {
     <Layout>
       <div className="relative h-48 md:h-64 overflow-hidden">
         <img
-          src={currentGame.banner || currentGame.image}
+          src={currentGame.banner_url || currentGame.icon_url}
           alt={currentGame.name}
           className="w-full h-full object-cover"
         />
@@ -232,7 +232,7 @@ export default function GameDetail() {
       <div className="container mx-auto px-4 -mt-20 relative z-10">
         <div className="flex items-end gap-4 mb-8">
           <img
-            src={currentGame.image}
+            src={currentGame.icon_url}
             alt={currentGame.name}
             className="w-24 h-32 md:w-32 md:h-44 rounded-xl object-cover border-4 border-background shadow-2xl"
           />
@@ -415,7 +415,7 @@ export default function GameDetail() {
 
               <div className="flex items-center gap-3 pb-4 border-b border-border">
                 <img
-                  src={currentGame.image}
+                  src={currentGame.icon_url}
                   alt={currentGame.name}
                   className="w-12 h-12 rounded-lg object-cover"
                 />

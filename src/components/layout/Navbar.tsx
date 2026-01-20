@@ -45,16 +45,16 @@ export function Navbar() {
               Semua Game
             </Link>
             <Link
-              to="/games?category=mobile"
+              to="/games?category=rpg"
               className="text-muted-foreground hover:text-foreground transition-colors font-medium"
             >
-              Mobile Games
+              Game RPG
             </Link>
             <Link
-              to="/games?category=pc"
+              to="/games?category=battle-royale"
               className="text-muted-foreground hover:text-foreground transition-colors font-medium"
             >
-              PC Games
+              Game Battle Royale
             </Link>
           </div>
 

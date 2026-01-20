@@ -7,7 +7,7 @@ interface ApiResponse<T> {
   message?: string;
   error?: string;
   code?: string;
-  meta?: PaginationMeta; 
+  meta?: PaginationMeta;
 }
 
 export interface PaginationMeta {
@@ -44,10 +44,14 @@ class ApiClient {
     options: RequestInit = {},
   ): Promise<ApiResponse<T>> {
     const url = `${this.baseUrl}${endpoint}`;
+
     const headers: HeadersInit = {
-      "Content-Type": "application/json",
       ...options.headers,
     };
+
+    if (!(options.body instanceof FormData)) {
+      (headers as Record<string, string>)["Content-Type"] = "application/json";
+    }
 
     const token = this.getToken();
     if (token) {
@@ -82,6 +86,7 @@ class ApiClient {
       return {
         success: true,
         data: data.data || data,
+        meta: data.meta,
       };
     } catch (error) {
       return {
@@ -219,9 +224,85 @@ class ApiClient {
       "/payment/calculate-fee",
       {
         method: "POST",
-        body: JSON.stringify({ amount, code }),
+        body: JSON.stringify({ amount, channel_code: code }),
       },
     );
+  }
+
+  async uploadImage(file: File, folder: string = "images") {
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("folder", folder);
+    return this.request<{ url: string }>("/upload/image", {
+      method: "POST",
+      body: formData,
+    });
+  }
+
+  async getAdminStats() {
+    return this.request<AdminStats>("/admin/stats");
+  }
+
+  async createGame(data: FormData) {
+    return this.request<Game>("/admin/games", {
+      method: "POST",
+      body: data,
+    });
+  }
+
+  async updateGame(id: string, data: Partial<Game>) {
+    return this.request<Game>(`/admin/games/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deleteGame(id: string) {
+    return this.request(`/admin/games/${id}`, {
+      method: "DELETE",
+    });
+  }
+
+  async getAllProducts() {
+    return this.request<Product[]>("/admin/products");
+  }
+
+  async createProduct(data: Partial<Product>) {
+    return this.request<Product>("/admin/products", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+  }
+
+  async updateProduct(id: string, data: Partial<Product>) {
+    return this.request<Product>(`/admin/products/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deleteProduct(id: string) {
+    return this.request(`/admin/products/${id}`, {
+      method: "DELETE",
+    });
+  }
+
+  async getAllTransactions() {
+    return this.request<Transaction[]>("/admin/transactions");
+  }
+
+  async updateTransactionStatus(id: string, status: string) {
+    return this.request<Transaction>(`/admin/transactions/${id}/status`, {
+      method: "PUT",
+      body: JSON.stringify({ status }),
+    });
+  }
+
+  async updatePaymentChannel(code: string, data: Partial<PaymentChannel>) {
+    return this.request<PaymentChannel>(`/admin/payment/channels/${code}`, {
+      method: "PUT",
+      body: JSON.stringify(data),
+    });
   }
 }
 
@@ -229,6 +310,7 @@ export interface User {
   id: string;
   email: string;
   name: string;
+  role: string;
   phone?: string;
   avatar?: string;
   created_at: string;
@@ -240,11 +322,11 @@ export interface Game {
   code: string;
   name: string;
   description: string;
-  image: string;
-  banner?: string;
+  icon_url: string;
+  banner_url?: string;
   category: string;
   total_sold: number;
-  is_active: boolean;
+  status: string;
   is_popular: boolean;
   sort_order: number;
   input_fields?: GameInputField[];
@@ -292,12 +374,12 @@ export interface Transaction {
   admin_fee: number;
   total_amount: number;
   status: "pending" | "processing" | "success" | "failed" | "expired";
-  payment_method: string; 
+  payment_method: string;
   payment_url?: string;
   expired_at?: string;
   created_at: string;
-  
-  game?: Game; 
+
+  game?: Game;
   product?: Product;
 }
 
@@ -329,6 +411,13 @@ export interface CreateTransactionRequest {
   customer_name?: string;
   customer_email?: string;
   customer_phone?: string;
+}
+
+export interface AdminStats {
+  totalUsers: number;
+  totalTransactions: number;
+  totalRevenue: number;
+  pendingTransactions: number;
 }
 
 export const api = new ApiClient(API_BASE_URL);

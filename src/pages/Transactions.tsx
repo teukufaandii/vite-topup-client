@@ -138,11 +138,11 @@ export default function Transactions() {
                     {/* Game Info */}
                     <div className="flex items-center gap-4 flex-1">
                       <img
-                        src={tx.game?.image || "/placeholder.svg"}
+                        src={tx.game?.icon_url || "/placeholder.svg"}
                         alt={tx.game?.name || "Game"}
                         className="w-16 h-16 rounded-lg object-cover"
                       />
-                      <div className="flex-1 min-w-0">
+                      <div className="flex-1 min-w-0 text-left">
                         <h3 className="font-semibold truncate">
                           {tx.game?.name || "Game"}
                         </h3>
@@ -216,7 +216,7 @@ export default function Transactions() {
 
                   {/* Player Data */}
                   <div className="mt-4 pt-4 border-t border-border">
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-sm text-muted-foreground text-left">
                       <span className="font-medium text-foreground">
                         Player ID:
                       </span>{" "}

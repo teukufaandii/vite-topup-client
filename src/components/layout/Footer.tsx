@@ -14,7 +14,7 @@ export function Footer() {
                 GameTop
               </span>
             </Link>
-            <p className="text-muted-foreground mb-4 max-w-md">
+            <p className="text-muted-foreground mb-4 max-w-md text-start">
               Platform top-up game terpercaya dengan harga termurah dan proses tercepat. 
               Transaksi aman dan mudah untuk semua game favorit kamu.
             </p>
@@ -48,8 +48,8 @@ export function Footer() {
 
           {/* Quick Links */}
           <div>
-            <h3 className="font-display font-bold text-lg mb-4">Quick Links</h3>
-            <ul className="space-y-2">
+            <h3 className="font-display font-bold text-lg mb-4 text-start">Quick Links</h3>
+            <ul className="space-y-2 text-start">
               <li>
                 <Link to="/games" className="text-muted-foreground hover:text-primary transition-colors">
                   Semua Game
@@ -75,8 +75,8 @@ export function Footer() {
 
           {/* Contact */}
           <div>
-            <h3 className="font-display font-bold text-lg mb-4">Kontak</h3>
-            <ul className="space-y-3">
+            <h3 className="font-display font-bold text-lg mb-4 text-start">Kontak</h3>
+            <ul className="space-y-3 text-start">
               <li className="flex items-center gap-2 text-muted-foreground">
                 <Mail className="h-4 w-4 text-primary" />
                 support@gametop.id

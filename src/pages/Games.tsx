@@ -19,6 +19,7 @@ const categories = [
   { id: "all", label: "Semua", icon: Gamepad2 },
   { id: "rpg", label: "RPG", icon: SwordIcon },
   { id: "battle-royale", label: "Battle Royale", icon: ExpandIcon },
+  { id: "moba", label: "MOBA", icon: ExpandIcon },
 ];
 
 export default function Games() {
@@ -73,14 +74,14 @@ export default function Games() {
         {/* Filters */}
         <div className="flex flex-col md:flex-row gap-4 mb-10">
           {/* Search */}
-          <div className="relative flex-1 max-w-md">
+          <div className="relative flex-1 md:max-w-md w-full">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
             <Input
               type="text"
               placeholder="Cari game..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 pr-10"
+              className="pl-10 pr-10 w-full"
             />
             {searchQuery && (
               <button
@@ -92,22 +93,25 @@ export default function Games() {
             )}
           </div>
 
-          {/* Category Filter */}
-          <div className="flex gap-2">
-            {categories.map((cat) => (
-              <Button
-                key={cat.id}
-                variant={category === cat.id ? "default" : "outline"}
-                onClick={() => handleCategoryChange(cat.id)}
-                className={cn(
-                  "gap-2",
-                  category === cat.id && "shadow-lg shadow-primary/25",
-                )}
-              >
-                <cat.icon className="h-4 w-4" />
-                {cat.label}
-              </Button>
-            ))}
+          {/* Categories */}
+          <div className="w-full md:w-auto overflow-x-auto pb-2 -mx-4 px-4 md:mx-0 md:px-0 md:pb-0 no-scrollbar">
+            <div className="flex gap-2 min-w-max">
+              {categories.map((cat) => (
+                <Button
+                  key={cat.id}
+                  variant={category === cat.id ? "default" : "outline"}
+                  onClick={() => handleCategoryChange(cat.id)}
+                  size="sm"
+                  className={cn(
+                    "gap-2 rounded-full",
+                    category === cat.id && "shadow-lg shadow-primary/25",
+                  )}
+                >
+                  <cat.icon className="h-4 w-4" />
+                  {cat.label}
+                </Button>
+              ))}
+            </div>
           </div>
         </div>
 

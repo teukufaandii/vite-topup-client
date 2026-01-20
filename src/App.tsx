@@ -12,6 +12,9 @@ import Login from "./pages/Login";
 import Transactions from "./pages/Transactions";
 import Profile from "./pages/Profile";
 import Games from "./pages/Games";
+import AdminDashboard from "./pages/admin/Dashboard";
+import GamesManagement from "./pages/admin/GamesManagement";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 const queryClient = new QueryClient();
 
@@ -19,16 +22,28 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <AuthProvider>
-        <Toaster />
+        <Toaster position="top-center" richColors />
         <BrowserRouter>
           <Routes>
+            {/* Public Routes */}
             <Route path="/" element={<Index />} />
             <Route path="/register" element={<Register />} />
             <Route path="/login" element={<Login />} />
             <Route path="/games" element={<Games />} />
             <Route path="/games/:code" element={<GameDetail />} />
-            <Route path="/transactions" element={<Transactions />} />
-            <Route path="/profile" element={<Profile />} />
+
+            {/* Protected User Routes */}
+            <Route element={<ProtectedRoute />}>
+              <Route path="/transactions" element={<Transactions />} />
+              <Route path="/profile" element={<Profile />} />
+            </Route>
+
+            {/* Protected Admin Routes */}
+            <Route element={<ProtectedRoute adminOnly={true} />}>
+              <Route path="/admin" element={<AdminDashboard />} />
+              <Route path="/admin/games" element={<GamesManagement />} />
+            </Route>
+
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

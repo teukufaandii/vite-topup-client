@@ -56,7 +56,7 @@ export function PaymentChannelCard({
       onClick={() => onSelect(channel)}
       disabled={channel.is_active === false} 
       className={cn(
-        "gaming-card w-full text-left transition-all duration-300 flex items-center gap-4 cursor-pointer", // Tambah cursor-pointer eksplisit
+        "gaming-card w-full text-left transition-all duration-300 flex items-center gap-4 cursor-pointer", 
         selected && "glow-border ring-2 ring-primary",
         channel.is_active === false && "opacity-50 cursor-not-allowed grayscale"
       )}

@@ -12,7 +12,7 @@ export function GameCard({ game }: GameCardProps) {
       <div className="gaming-card relative aspect-[3/4] overflow-hidden">
         {/* Image */}
         <img
-          src={game.image || '/placeholder.svg'}
+          src={game.icon_url || '/placeholder.svg'}
           alt={game.name}
           className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
         />

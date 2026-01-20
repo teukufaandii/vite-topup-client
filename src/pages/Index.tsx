@@ -228,7 +228,7 @@ export default function Index() {
               <div className="absolute top-1/2 right-24 -translate-y-1/2 w-48 h-48 bg-secondary rounded-full blur-3xl" />
             </div>
 
-            <div className="relative z-10 max-w-2xl">
+            <div className="relative z-10 max-w-2xl text-start">
               <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">
                 Siap Top Up <span className="gradient-text">Sekarang</span>?
               </h2>
@@ -236,7 +236,7 @@ export default function Index() {
                 Daftar sekarang dan nikmati promo menarik untuk pengguna baru.
                 Proses cepat, harga bersaing, dan layanan 24/7.
               </p>
-              <div className="flex flex-col justify-center sm:flex-row gap-4">
+              <div className="flex flex-col justify-start sm:flex-row gap-4">
                 <Button variant="gaming" size="lg" asChild>
                   <Link to="/register">Daftar Gratis</Link>
                 </Button>
