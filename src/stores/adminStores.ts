@@ -7,10 +7,10 @@ import api, {
 } from "@/lib/api";
 
 interface AdminStats {
-  totalUsers: number;
-  totalTransactions: number;
-  totalRevenue: number;
-  pendingTransactions: number;
+  total_users: number;
+  total_transactions: number;
+  total_revenue: number;
+  pending_transactions: number;
 }
 
 interface AdminState {
@@ -30,8 +30,8 @@ interface AdminState {
   deleteGame: (id: string) => Promise<boolean>;
 
   fetchAllProducts: (gameId?: string) => Promise<void>;
-  createProduct: (data: Partial<Product>) => Promise<boolean>;
-  updateProduct: (id: string, data: Partial<Product>) => Promise<boolean>;
+  createProduct: (data: FormData) => Promise<boolean>;
+  updateProduct: (id: string, data: FormData) => Promise<boolean>;
   deleteProduct: (id: string) => Promise<boolean>;
 
   fetchAllTransactions: () => Promise<void>;

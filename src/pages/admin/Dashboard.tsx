@@ -58,7 +58,10 @@ export default function AdminDashboard() {
     fetchAllGames();
   }, [fetchStats, fetchAllTransactions, fetchAllGames]);
 
-  const recentTransactions = transactions.slice(0, 5);
+  const safeTransactions = transactions || [];
+  const safeGames = games || [];
+
+  const recentTransactions = safeTransactions.slice(0, 5);
 
   const transactionColumns = [
     {
@@ -71,13 +74,16 @@ export default function AdminDashboard() {
     {
       key: "game",
       header: "Game",
-      render: (item: Transaction) => item.game?.name || "-",
+      render: (item: Transaction) => item.game_name || "-",
+      className: "text-left",
     },
     {
       key: "total",
       header: "Amount",
       render: (item: Transaction) => (
-        <span className="font-semibold">{formatCurrency(item.total_amount)}</span>
+        <span className="font-semibold">
+          {formatCurrency(item.total_amount)}
+        </span>
       ),
     },
     {
@@ -97,38 +103,46 @@ export default function AdminDashboard() {
           {formatDate(item.created_at)}
         </span>
       ),
+      className: "text-left",
     },
   ];
+
+  function getPopularGamesByTotalSold(games: any[]) {
+    return [...games]
+      .sort((a: any, b: any) => b.total_sold - a.total_sold)
+      .slice(0, 5);
+  }
 
   return (
     <AdminLayout>
       <div className="space-y-8">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
-          <p className="text-muted-foreground mt-1">
+          <h1 className="text-3xl font-bold text-foreground text-left">
+            Dashboard
+          </h1>
+          <p className="text-muted-foreground mt-1 text-left">
             Welcome back! Here's what's happening.
           </p>
         </div>
 
-        {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <StatsCard
             title="Total Users"
-            value={stats?.totalUsers || 0}
+            value={stats?.total_users || 0}
             icon={<Users className="w-6 h-6" />}
             trend={{ value: 12, isPositive: true }}
           />
           <StatsCard
             title="Total Transactions"
-            value={stats?.totalTransactions || transactions.length}
+            value={stats?.total_transactions || safeTransactions.length}
             icon={<Receipt className="w-6 h-6" />}
             trend={{ value: 8, isPositive: true }}
           />
           <StatsCard
             title="Total Revenue"
             value={formatCurrency(
-              stats?.totalRevenue ||
-                transactions.reduce((acc, t) => acc + t.total_amount, 0),
+              stats?.total_revenue ||
+                safeTransactions.reduce((acc, t) => acc + t.total_amount, 0),
             )}
             icon={<DollarSign className="w-6 h-6" />}
             trend={{ value: 15, isPositive: true }}
@@ -136,14 +150,13 @@ export default function AdminDashboard() {
           <StatsCard
             title="Pending Orders"
             value={
-              stats?.pendingTransactions ||
-              transactions.filter((t) => t.status === "pending").length
+              stats?.pending_transactions ||
+              safeTransactions.filter((t) => t.status === "pending").length
             }
             icon={<Clock className="w-6 h-6" />}
           />
         </div>
 
-        {/* Quick Stats */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 bg-card rounded-xl border border-border p-6">
             <div className="flex items-center justify-between mb-6">
@@ -179,39 +192,38 @@ export default function AdminDashboard() {
               </a>
             </div>
             <div className="space-y-4">
-              {games
-                .filter((g) => g.is_popular)
-                .slice(0, 5)
-                .map((game) => (
-                  <div
-                    key={game.id}
-                    className="flex items-center gap-4 p-3 rounded-lg bg-muted/50"
-                  >
-                    <div className="w-12 h-12 rounded-lg overflow-hidden bg-muted">
-                      {game.icon_url ? (
-                        <img
-                          src={game.icon_url}
-                          alt={game.name}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <Gamepad2 className="w-6 h-6 text-muted-foreground" />
-                        </div>
-                      )}
-                    </div>
-                    <div className="flex-1">
-                      <p className="font-medium text-foreground">{game.name}</p>
-                      <p className="text-sm text-muted-foreground">
-                        {game.category}
-                      </p>
-                    </div>
-                    <Badge variant={game.status === "active" ? "default" : "secondary"}>
-                      {game.status === "active" ? "Active" : "Inactive"}
-                    </Badge>
+              {getPopularGamesByTotalSold(safeGames).map((game) => (
+                <div
+                  key={game.id}
+                  className="flex items-center gap-4 p-3 rounded-lg bg-muted/50"
+                >
+                  <div className="w-12 h-12 rounded-lg overflow-hidden bg-muted">
+                    {game.icon_url ? (
+                      <img
+                        src={game.icon_url}
+                        alt={game.name}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <Gamepad2 className="w-6 h-6 text-muted-foreground" />
+                      </div>
+                    )}
                   </div>
-                ))}
-              {games.filter((g) => g.is_popular).length === 0 && (
+                  <div className="flex-1">
+                    <p className="font-medium text-foreground">{game.name}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {game.category}
+                    </p>
+                  </div>
+                  <Badge
+                    variant={game.status === "active" ? "default" : "secondary"}
+                  >
+                    {game.status === "active" ? "Active" : "Inactive"}
+                  </Badge>
+                </div>
+              ))}
+              {safeGames.filter((g) => g.is_popular).length === 0 && (
                 <p className="text-center text-muted-foreground py-4">
                   No popular games yet
                 </p>

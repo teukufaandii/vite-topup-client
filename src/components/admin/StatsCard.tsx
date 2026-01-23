@@ -28,8 +28,8 @@ export const StatsCard = ({
     >
       <div className="flex items-start justify-between">
         <div>
-          <p className="text-sm text-muted-foreground">{title}</p>
-          <p className="text-3xl font-bold mt-2 text-foreground">{value}</p>
+          <p className="text-sm text-muted-foreground text-left">{title}</p>
+          <p className="text-3xl font-bold mt-2 text-foreground text-left">{value}</p>
           {trend && (
             <p
               className={cn(

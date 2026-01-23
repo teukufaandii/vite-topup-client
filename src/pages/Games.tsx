@@ -12,23 +12,28 @@ import {
   Loader2,
   SwordIcon,
   ExpandIcon,
+  Crosshair,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-
-const categories = [
-  { id: "all", label: "Semua", icon: Gamepad2 },
-  { id: "rpg", label: "RPG", icon: SwordIcon },
-  { id: "battle-royale", label: "Battle Royale", icon: ExpandIcon },
-  { id: "moba", label: "MOBA", icon: ExpandIcon },
-];
 
 export default function Games() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState("");
 
-  const { games, isLoading, fetchGames, fetchGamesByCategory } = useGameStore();
+  const {
+    games,
+    categories,
+    isLoading,
+    fetchGames,
+    fetchGamesByCategory,
+    getCategories,
+  } = useGameStore();
 
   const category = searchParams.get("category") || "all";
+
+  useEffect(() => {
+    getCategories();
+  }, [getCategories]);
 
   useEffect(() => {
     if (category === "all") {
@@ -49,19 +54,40 @@ export default function Games() {
     );
   }, [games, searchQuery]);
 
-  const handleCategoryChange = (cat: string) => {
-    if (cat === "all") {
+  const handleCategoryChange = (catCode: string) => {
+    if (catCode === "all") {
       searchParams.delete("category");
     } else {
-      searchParams.set("category", cat);
+      searchParams.set("category", catCode);
     }
     setSearchParams(searchParams);
   };
 
+  const getCategoryIcon = (code: string) => {
+    switch (code) {
+      case "rpg":
+        return SwordIcon;
+      case "fps":
+        return Crosshair;
+      case "battle-royale":
+      case "moba":
+        return ExpandIcon;
+      default:
+        return Gamepad2;
+    }
+  };
+
+  const displayCategories = [
+    { id: "all", name: "Semua", code: "all", icon: Gamepad2 },
+    ...(categories || []).map((cat) => ({
+      ...cat,
+      icon: getCategoryIcon(cat.code),
+    })),
+  ];
+
   return (
     <Layout>
       <div className="container mx-auto px-4 py-12">
-        {/* Header */}
         <div className="mb-10">
           <h1 className="font-display text-4xl md:text-5xl font-bold mb-4">
             Katalog <span className="gradient-text">Game</span>
@@ -71,9 +97,7 @@ export default function Games() {
           </p>
         </div>
 
-        {/* Filters */}
         <div className="flex flex-col md:flex-row gap-4 mb-10">
-          {/* Search */}
           <div className="relative flex-1 md:max-w-md w-full">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
             <Input
@@ -93,29 +117,27 @@ export default function Games() {
             )}
           </div>
 
-          {/* Categories */}
           <div className="w-full md:w-auto overflow-x-auto pb-2 -mx-4 px-4 md:mx-0 md:px-0 md:pb-0 no-scrollbar">
             <div className="flex gap-2 min-w-max">
-              {categories.map((cat) => (
+              {displayCategories.map((cat) => (
                 <Button
                   key={cat.id}
-                  variant={category === cat.id ? "default" : "outline"}
-                  onClick={() => handleCategoryChange(cat.id)}
+                  variant={category === cat.code ? "default" : "outline"}
+                  onClick={() => handleCategoryChange(cat.code)}
                   size="sm"
                   className={cn(
                     "gap-2 rounded-full",
-                    category === cat.id && "shadow-lg shadow-primary/25",
+                    category === cat.code && "shadow-lg shadow-primary/25",
                   )}
                 >
                   <cat.icon className="h-4 w-4" />
-                  {cat.label}
+                  {cat.name}
                 </Button>
               ))}
             </div>
           </div>
         </div>
 
-        {/* Games Grid */}
         {isLoading ? (
           <div className="flex items-center justify-center py-20">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />

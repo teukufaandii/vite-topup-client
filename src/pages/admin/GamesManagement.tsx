@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import { DataTable } from "@/components/admin/DataTable";
 import { ImageUpload } from "@/components/admin/ImageUpload";
-import { useAdminStore } from "@/stores/adminStores";
+import { useAdminStore, useGameStore } from "@/stores";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -23,6 +23,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
@@ -34,6 +41,8 @@ import api from "@/lib/api";
 export default function GamesManagement() {
   const { games, fetchAllGames, updateGame, deleteGame, isLoading } =
     useAdminStore();
+  const { categories, getCategories } = useGameStore();
+
   const [searchQuery, setSearchQuery] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -59,7 +68,8 @@ export default function GamesManagement() {
 
   useEffect(() => {
     fetchAllGames();
-  }, [fetchAllGames]);
+    getCategories();
+  }, [fetchAllGames, getCategories]);
 
   const filteredGames = games.filter(
     (game) =>
@@ -87,6 +97,11 @@ export default function GamesManagement() {
 
   const handleEdit = (game: Game) => {
     setEditingGame(game);
+
+    const matchingCategory = categories.find(
+      (c) => c.name.toLowerCase() === game.category.toLowerCase(),
+    );
+
     setFormData({
       name: game.name || "",
       code: game.code || "",
@@ -94,9 +109,9 @@ export default function GamesManagement() {
       description: game.description || "",
       image: game.icon_url || "",
       banner: game.banner_url || "",
-      category: game.category || "",
+      category: matchingCategory ? matchingCategory.code : "",
       status: game.status || "active",
-      sort_order: game.sort_order ?? 0, 
+      sort_order: game.sort_order ?? 0,
     });
     setImageFile(null);
     setBannerFile(null);
@@ -303,9 +318,20 @@ export default function GamesManagement() {
                     <Input
                       id="name"
                       value={formData.name}
-                      onChange={(e) =>
-                        setFormData({ ...formData, name: e.target.value })
-                      }
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        const generatedCode = val
+                          .toLowerCase()
+                          .replace(/[^a-z0-9\s]/g, "")
+                          .trim()
+                          .replace(/\s+/g, "-");
+
+                        setFormData({
+                          ...formData,
+                          name: val,
+                          code: generatedCode,
+                        });
+                      }}
                       required
                     />
                   </div>
@@ -318,6 +344,7 @@ export default function GamesManagement() {
                         setFormData({ ...formData, code: e.target.value })
                       }
                       required
+                      disabled
                     />
                   </div>
                 </div>
@@ -370,14 +397,24 @@ export default function GamesManagement() {
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="category">Category</Label>
-                    <Input
-                      id="category"
+                    <Select
                       value={formData.category}
-                      onChange={(e) =>
-                        setFormData({ ...formData, category: e.target.value })
+                      onValueChange={(value) =>
+                        setFormData({ ...formData, category: value })
                       }
                       required
-                    />
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select Category" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {categories.map((cat) => (
+                          <SelectItem key={cat.id} value={cat.code}>
+                            {cat.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="sort_order">Sort Order</Label>

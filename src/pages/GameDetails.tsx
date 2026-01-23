@@ -421,7 +421,7 @@ export default function GameDetail() {
                 />
                 <div>
                   <p className="font-medium">{currentGame.name}</p>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-sm text-muted-foreground text-left">
                     {currentGame.category}
                   </p>
                 </div>
@@ -431,8 +431,10 @@ export default function GameDetail() {
                 <div className="py-4 border-b border-border">
                   <div className="flex justify-between items-center">
                     <div>
-                      <p className="font-medium">{selectedProduct.name}</p>
-                      <p className="text-sm text-muted-foreground">
+                      <p className="font-medium text-left">
+                        {selectedProduct.name}
+                      </p>
+                      <p className="text-sm text-muted-foreground text-left">
                         {selectedProduct.denomination}{" "}
                         {selectedProduct.denomination_type}
                       </p>
@@ -473,7 +475,9 @@ export default function GameDetail() {
                 <div className="flex justify-between font-bold text-lg pt-2 border-t border-border">
                   <span>Total</span>
                   <span className="text-primary">
-                    {total > 0 ? formatPrice(total) : "-"}
+                    {total > 0
+                      ? formatPrice(selectedProduct!.price + fee)
+                      : "-"}
                   </span>
                 </div>
               </div>

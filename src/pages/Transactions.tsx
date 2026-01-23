@@ -139,12 +139,12 @@ export default function Transactions() {
                     <div className="flex items-center gap-4 flex-1">
                       <img
                         src={tx.game?.icon_url || "/placeholder.svg"}
-                        alt={tx.game?.name || "Game"}
+                        alt={tx.game_name || "Game"}
                         className="w-16 h-16 rounded-lg object-cover"
                       />
                       <div className="flex-1 min-w-0 text-left">
                         <h3 className="font-semibold truncate">
-                          {tx.game?.name || "Game"}
+                          {tx.game_name || "Game"}
                         </h3>
                         <p className="text-sm text-muted-foreground truncate">
                           {tx.product_name || "Product"}
@@ -172,7 +172,7 @@ export default function Transactions() {
                         </p>
                         <p>
                           <span className="font-semibold">Method:</span>{" "}
-                          {tx.payment_method}
+                          {tx.payment_name}
                         </p>
                       </div>
                       <div

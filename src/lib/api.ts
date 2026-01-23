@@ -17,13 +17,30 @@ export interface PaginationMeta {
   total_pages: number;
 }
 
+let isRefreshing = false;
+let refreshSubscribers: ((token: string) => void)[] = [];
+
+const subscribeTokenRefresh = (callback: (token: string) => void) => {
+  refreshSubscribers.push(callback);
+};
+
+const onTokenRefreshed = (token: string) => {
+  refreshSubscribers.forEach((callback) => callback(token));
+  refreshSubscribers = [];
+};
+
 class ApiClient {
   private baseUrl: string;
   private token: string | null = null;
+  private onUnauthorizedCallback: (() => void) | null = null;
 
   constructor(baseUrl: string) {
     this.baseUrl = baseUrl;
     this.token = localStorage.getItem("access_token");
+  }
+
+  bindUnauthorizedCallback(callback: () => void) {
+    this.onUnauthorizedCallback = callback;
   }
 
   setToken(token: string | null) {
@@ -39,9 +56,74 @@ class ApiClient {
     return this.token || localStorage.getItem("access_token");
   }
 
+  getRefreshToken() {
+    return localStorage.getItem("refresh_token");
+  }
+
+  setRefreshToken(token: string | null) {
+    if (token) {
+      localStorage.setItem("refresh_token", token);
+    } else {
+      localStorage.removeItem("refresh_token");
+    }
+  }
+
+  async refreshAccessToken(): Promise<boolean> {
+    const refreshToken = this.getRefreshToken();
+    if (!refreshToken) {
+      return false;
+    }
+
+    if (isRefreshing) {
+      return new Promise((resolve) => {
+        subscribeTokenRefresh((token) => {
+          resolve(!!token);
+        });
+      });
+    }
+
+    isRefreshing = true;
+
+    try {
+      const response = await fetch(`${this.baseUrl}/auth/refresh`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ refresh_token: refreshToken }),
+      });
+
+      const jsonResponse = await response.json();
+
+      const payload = jsonResponse.data || jsonResponse;
+
+      if (response.ok && payload.access_token) {
+        this.setToken(payload.access_token);
+        if (payload.refresh_token) {
+          this.setRefreshToken(payload.refresh_token);
+        }
+        onTokenRefreshed(payload.access_token);
+        isRefreshing = false;
+        return true;
+      } else {
+        this.setToken(null);
+        this.setRefreshToken(null);
+        isRefreshing = false;
+        return false;
+      }
+    } catch (error) {
+      console.error("Token refresh failed:", error);
+      this.setToken(null);
+      this.setRefreshToken(null);
+      isRefreshing = false;
+      return false;
+    }
+  }
+
   private async request<T>(
     endpoint: string,
     options: RequestInit = {},
+    retry = true,
   ): Promise<ApiResponse<T>> {
     const url = `${this.baseUrl}${endpoint}`;
 
@@ -64,6 +146,24 @@ class ApiClient {
         headers,
       });
 
+      if (
+        response.status === 401 &&
+        retry &&
+        !endpoint.includes("/auth/refresh") &&
+        !endpoint.includes("/auth/login")
+      ) {
+        const refreshSuccess = await this.refreshAccessToken();
+        if (refreshSuccess) {
+          return this.request<T>(endpoint, options, false);
+        } else {
+          window.dispatchEvent(new CustomEvent("auth:logout"));
+          return {
+            success: false,
+            error: "Session expired. Please login again.",
+          };
+        }
+      }
+
       let data;
       try {
         data = await response.json();
@@ -73,7 +173,12 @@ class ApiClient {
 
       if (!response.ok) {
         if (response.status === 401) {
-          this.setToken(null);
+          if (this.onUnauthorizedCallback) {
+            this.onUnauthorizedCallback();
+          } else {
+            this.setToken(null);
+            this.setRefreshToken(null);
+          }
         }
 
         return {
@@ -97,6 +202,18 @@ class ApiClient {
     }
   }
 
+  async refreshToken() {
+    const refreshToken = this.getRefreshToken();
+
+    return this.request<{
+      access_token: string;
+      user: User;
+    }>("/auth/refresh", {
+      method: "POST",
+      body: JSON.stringify({ refresh_token: refreshToken }),
+    });
+  }
+
   async register(email: string, phone: string, password: string, name: string) {
     const response = await this.request<{
       user: User;
@@ -110,6 +227,7 @@ class ApiClient {
 
     if (response.success && response.data) {
       this.setToken(response.data.access_token);
+      this.setRefreshToken(response.data.refresh_token);
     }
 
     return response;
@@ -127,16 +245,29 @@ class ApiClient {
 
     if (response.success && response.data) {
       this.setToken(response.data.access_token);
+      this.setRefreshToken(response.data.refresh_token);
     }
 
     return response;
   }
 
   async logout() {
-    const result = await this.request("/auth/logout", { method: "POST" });
+    const refreshToken = this.getRefreshToken();
+
+    if (refreshToken) {
+      try {
+        await this.request("/auth/logout", {
+          method: "POST",
+          body: JSON.stringify({ refresh_token: refreshToken }),
+        });
+      } catch (error) {
+        console.error("Logout error:", error);
+      }
+    }
+
     this.setToken(null);
-    localStorage.removeItem("refresh_token");
-    return result;
+    this.setRefreshToken(null);
+    return { success: true };
   }
 
   async getProfile() {
@@ -150,8 +281,16 @@ class ApiClient {
     });
   }
 
+  async getUserRoles() {
+    return this.request<UserRole>("/auth/role");
+  }
+
   async getGames() {
     return this.request<Game[]>("/games");
+  }
+
+  async getCategories() {
+    return this.request<Categories[]>("/categories");
   }
 
   async getPopularGames() {
@@ -224,7 +363,7 @@ class ApiClient {
       "/payment/calculate-fee",
       {
         method: "POST",
-        body: JSON.stringify({ amount, channel_code: code }),
+        body: JSON.stringify({ amount, code }),
       },
     );
   }
@@ -267,17 +406,17 @@ class ApiClient {
     return this.request<Product[]>("/admin/products");
   }
 
-  async createProduct(data: Partial<Product>) {
+  async createProduct(data: FormData) {
     return this.request<Product>("/admin/products", {
       method: "POST",
-      body: JSON.stringify(data),
+      body: data,
     });
   }
 
-  async updateProduct(id: string, data: Partial<Product>) {
+  async updateProduct(id: string, data: FormData) {
     return this.request<Product>(`/admin/products/${id}`, {
       method: "PUT",
-      body: JSON.stringify(data),
+      body: data,
     });
   }
 
@@ -292,7 +431,7 @@ class ApiClient {
   }
 
   async updateTransactionStatus(id: string, status: string) {
-    return this.request<Transaction>(`/admin/transactions/${id}/status`, {
+    return this.request<Transaction>(`/admin/transactions/${id}`, {
       method: "PUT",
       body: JSON.stringify({ status }),
     });
@@ -349,6 +488,18 @@ export interface GameInputField {
   options?: InputFieldOption[];
 }
 
+export interface UserRole {
+  id: string;
+  user_id: string;
+  code: string;
+}
+
+export interface Categories {
+  id: string;
+  name: string;
+  code: string;
+}
+
 export interface Product {
   id: string;
   game_id: string;
@@ -356,6 +507,7 @@ export interface Product {
   name: string;
   description?: string;
   price: number;
+  icon_url: string;
   original_price?: number;
   denomination: number;
   denomination_type: string;
@@ -377,6 +529,7 @@ export interface Transaction {
   status: "pending" | "processing" | "success" | "failed" | "expired";
   payment_method: string;
   payment_url?: string;
+  payment_name?: string;
   expired_at?: string;
   created_at: string;
 
@@ -415,10 +568,10 @@ export interface CreateTransactionRequest {
 }
 
 export interface AdminStats {
-  totalUsers: number;
-  totalTransactions: number;
-  totalRevenue: number;
-  pendingTransactions: number;
+  total_users: number;
+  total_transactions: number;
+  total_revenue: number;
+  pending_transactions: number;
 }
 
 export const api = new ApiClient(API_BASE_URL);

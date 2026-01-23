@@ -10,6 +10,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import NotificationDropdown from "../notifications/NotificationDropdown";
 
 export function Navbar() {
   const { user, isAuthenticated, logout } = useAuthStore();
@@ -60,6 +61,7 @@ export function Navbar() {
 
           {/* Auth Section */}
           <div className="hidden md:flex items-center gap-3">
+            {isAuthenticated && <NotificationDropdown />}
             {isAuthenticated ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -111,16 +113,19 @@ export function Navbar() {
           </div>
 
           {/* Mobile Menu Button */}
-          <button
-            className="md:hidden p-2"
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          >
-            {isMobileMenuOpen ? (
-              <X className="h-6 w-6" />
-            ) : (
-              <Menu className="h-6 w-6" />
-            )}
-          </button>
+          <div className="md:hidden flex items-center gap-2">
+            {isAuthenticated && <NotificationDropdown />}
+            <button
+              className="p-2"
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            >
+              {isMobileMenuOpen ? (
+                <X className="h-6 w-6" />
+              ) : (
+                <Menu className="h-6 w-6" />
+              )}
+            </button>
+          </div>
         </div>
 
         {/* Mobile Menu */}
